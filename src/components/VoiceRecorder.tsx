@@ -51,8 +51,9 @@ const VoiceRecorder = ({ onRecordingComplete, isProcessing }: VoiceRecorderProps
       <div className="relative">
         {isRecording && (
           <>
-            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple" />
-            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ripple" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute inset-0 rounded-full bg-primary/30 animate-ripple" />
+            <div className="absolute inset-0 rounded-full bg-primary/30 animate-ripple" style={{ animationDelay: '0.5s' }} />
+            <div className="absolute inset-0 rounded-full bg-primary/30 animate-ripple" style={{ animationDelay: '1s' }} />
           </>
         )}
         
@@ -61,21 +62,23 @@ const VoiceRecorder = ({ onRecordingComplete, isProcessing }: VoiceRecorderProps
           onClick={isRecording ? stopRecording : startRecording}
           disabled={isProcessing}
           className={cn(
-            "relative h-24 w-24 rounded-full gradient-primary shadow-glow transition-all duration-300",
-            isRecording && "animate-pulse-glow",
-            isProcessing && "opacity-50 cursor-not-allowed"
+            "relative h-28 w-28 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-primary transition-all duration-300",
+            isRecording && "animate-pulse-neon scale-110",
+            isProcessing && "opacity-50 cursor-not-allowed",
+            !isRecording && !isProcessing && "hover:scale-105 shadow-neon"
           )}
         >
+          <div className="absolute inset-2 rounded-full border border-primary/50 animate-pulse" />
           {isRecording ? (
-            <Square className="h-8 w-8" fill="currentColor" />
+            <Square className="h-10 w-10 text-background" fill="currentColor" />
           ) : (
-            <Mic className="h-8 w-8" />
+            <Mic className="h-10 w-10 text-background" />
           )}
         </Button>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        {isProcessing ? 'Processing...' : isRecording ? 'Tap to stop recording' : 'Tap to speak'}
+      <p className="text-sm text-primary font-mono tracking-wide">
+        {isProcessing ? '⚙ PROCESSING...' : isRecording ? '⏹ TAP TO STOP' : '🎤 TAP TO SPEAK'}
       </p>
     </div>
   );

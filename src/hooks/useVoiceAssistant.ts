@@ -37,7 +37,13 @@ export const useVoiceAssistant = () => {
         body: { audio: base64Audio }
       });
 
-      if (transcriptError) throw transcriptError;
+      if (transcriptError) {
+        // Handle specific errors
+        if (transcriptData?.errorCode === 'QUOTA_EXCEEDED') {
+          throw new Error('OpenAI API quota exceeded. Please check your OpenAI account billing.');
+        }
+        throw transcriptError;
+      }
 
       const userMessage = transcriptData.text;
       console.log('Transcription:', userMessage);
