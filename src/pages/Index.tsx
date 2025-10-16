@@ -1,6 +1,7 @@
 import { Bot, Waves } from 'lucide-react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import ConversationDisplay from '@/components/ConversationDisplay';
+import JarvisFace from '@/components/JarvisFace';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 import jarvisBg from '@/assets/jarvis-bg.jpg';
 
@@ -55,8 +56,25 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Conversation Display */}
-      <ConversationDisplay messages={messages} isListening={isListening} />
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center relative">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center gap-8 py-12">
+            <JarvisFace isListening={isListening} isProcessing={isProcessing} />
+            <div className="text-center space-y-2 max-w-md">
+              <h2 className="text-2xl font-bold text-primary">J.A.R.V.I.S. Interface</h2>
+              <p className="text-primary/70 font-mono text-sm">
+                Just A Rather Very Intelligent System
+              </p>
+              <p className="text-primary/50 text-xs">
+                Voice-activated AI assistant ready for your commands
+              </p>
+            </div>
+          </div>
+        ) : (
+          <ConversationDisplay messages={messages} isListening={isListening} />
+        )}
+      </main>
 
       {/* Voice Recorder */}
       <div className="relative border-t border-primary/20 bg-card/10 backdrop-blur-md py-8">

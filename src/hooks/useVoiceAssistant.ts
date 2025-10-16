@@ -38,11 +38,12 @@ export const useVoiceAssistant = () => {
       });
 
       if (transcriptError) {
+        console.error('Transcription error:', transcriptError, transcriptData);
         // Handle specific errors
         if (transcriptData?.errorCode === 'QUOTA_EXCEEDED') {
-          throw new Error('OpenAI API quota exceeded. Please check your OpenAI account billing.');
+          throw new Error('⚠️ OpenAI API क्रेडिट खत्म हो गए हैं। कृपया अपने OpenAI खाते में क्रेडिट जोड़ें: https://platform.openai.com/account/billing');
         }
-        throw transcriptError;
+        throw new Error(transcriptData?.error || transcriptError.message || 'Voice recognition failed');
       }
 
       const userMessage = transcriptData.text;
@@ -94,9 +95,10 @@ export const useVoiceAssistant = () => {
     } catch (error: any) {
       console.error('Error:', error);
       toast({
-        title: "Error",
+        title: "❌ एरर / Error",
         description: error.message || "Failed to process voice input",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 10000,
       });
       setIsListening(false);
     } finally {
