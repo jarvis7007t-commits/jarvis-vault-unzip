@@ -81,7 +81,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
         <div className="container mx-auto px-4 relative z-10">
           <VoiceRecorder 
-            onRecordingComplete={processVoiceInput}
+            onTranscript={processVoiceInput}
             isProcessing={isProcessing || isListening}
           />
         </div>

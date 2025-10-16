@@ -2,46 +2,90 @@ import { useState, useRef, useEffect } from 'react';
 import { Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface VoiceRecorderProps {
-  onRecordingComplete: (audioBlob: Blob) => void;
+  onTranscript: (text: string) => void;
   isProcessing: boolean;
 }
 
-const VoiceRecorder = ({ onRecordingComplete, isProcessing }: VoiceRecorderProps) => {
+const VoiceRecorder = ({ onTranscript, isProcessing }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const recognitionRef = useRef<any>(null);
+  const { toast } = useToast();
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      chunksRef.current = [];
+  useEffect(() => {
+    // Check if browser supports Speech Recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+      console.error('Speech Recognition not supported');
+      return;
+    }
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
-        }
-      };
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-IN'; // English (India) - understands both Hindi & English
+    recognition.maxAlternatives = 3;
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      console.log('Transcript:', transcript);
+      onTranscript(transcript);
+      setIsRecording(false);
+    };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        onRecordingComplete(blob);
-        stream.getTracks().forEach(track => track.stop());
-      };
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      
+      let errorMessage = 'Voice recognition failed';
+      if (event.error === 'no-speech') {
+        errorMessage = 'कोई आवाज नहीं सुनाई दी। कृपया फिर से प्रयास करें।';
+      } else if (event.error === 'not-allowed') {
+        errorMessage = 'माइक्रोफ़ोन की अनुमति दें।';
+      }
+      
+      toast({
+        title: "❌ एरर / Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    };
 
-      mediaRecorder.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [onTranscript, toast]);
+
+  const startRecording = () => {
+    if (recognitionRef.current && !isRecording) {
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } catch (error) {
+        console.error('Error starting recognition:', error);
+        toast({
+          title: "❌ एरर / Error",
+          description: "Voice recognition शुरू नहीं हो सका। कृपया browser refresh करें।",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
       setIsRecording(false);
     }
   };

@@ -13,41 +13,11 @@ export const useVoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
 
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        resolve(base64.split(',')[1]);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-
-  const processVoiceInput = async (voiceBlob: Blob) => {
+  const processVoiceInput = async (userMessage: string) => {
     setIsProcessing(true);
 
     try {
-      // Convert speech to text
-      console.log('Converting speech to text...');
-      const base64Audio = await blobToBase64(voiceBlob);
-      
-      const { data: transcriptData, error: transcriptError } = await supabase.functions.invoke('voice-to-text', {
-        body: { audio: base64Audio }
-      });
-
-      if (transcriptError) {
-        console.error('Transcription error:', transcriptError, transcriptData);
-        // Handle specific errors
-        if (transcriptData?.errorCode === 'QUOTA_EXCEEDED') {
-          throw new Error('⚠️ OpenAI API क्रेडिट खत्म हो गए हैं। कृपया अपने OpenAI खाते में क्रेडिट जोड़ें: https://platform.openai.com/account/billing');
-        }
-        throw new Error(transcriptData?.error || transcriptError.message || 'Voice recognition failed');
-      }
-
-      const userMessage = transcriptData.text;
-      console.log('Transcription:', userMessage);
+      console.log('User message:', userMessage);
 
       setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
@@ -66,31 +36,35 @@ export const useVoiceAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
 
-      // Convert text to speech
+      // Convert text to speech using browser's Speech Synthesis
       console.log('Converting text to speech...');
-      const { data: ttsData, error: ttsError } = await supabase.functions.invoke('text-to-speech', {
-        body: { text: assistantMessage, voice: 'alloy' }
-      });
-
-      if (ttsError) throw ttsError;
-
-      // Play audio
-      const audioData = atob(ttsData.audioContent);
-      const audioArray = new Uint8Array(audioData.length);
-      for (let i = 0; i < audioData.length; i++) {
-        audioArray[i] = audioData.charCodeAt(i);
-      }
-      const responseAudioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(responseAudioBlob);
-      const audio = new Audio(audioUrl);
       
-      audio.onended = () => {
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(assistantMessage);
+        utterance.lang = 'en-IN'; // English (India)
+        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.pitch = 1.0;
+        
+        utterance.onend = () => {
+          setIsListening(false);
+        };
+        
+        utterance.onerror = (event) => {
+          console.error('Speech synthesis error:', event);
+          setIsListening(false);
+        };
+        
+        window.speechSynthesis.speak(utterance);
+        console.log('Speaking response...');
+      } else {
+        // Fallback: just end the listening state
         setIsListening(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      await audio.play();
-      console.log('Playing audio response');
+        toast({
+          title: "ℹ️ Info",
+          description: "Text-to-speech not supported in this browser",
+          variant: "default",
+        });
+      }
 
     } catch (error: any) {
       console.error('Error:', error);
