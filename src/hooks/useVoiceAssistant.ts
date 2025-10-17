@@ -57,7 +57,7 @@ export const useVoiceAssistant = () => {
       
       // YouTube
       if (lowerMessage.includes('open youtube') || lowerMessage.includes('youtube खोलो') || 
-          lowerMessage.includes('youtube खोल')) {
+          lowerMessage.includes('youtube खोल') || lowerMessage.includes('youtube open')) {
         window.open('https://www.youtube.com', '_blank');
         setMessages(prev => [...prev, 
           { role: 'user', content: userMessage },
@@ -69,7 +69,7 @@ export const useVoiceAssistant = () => {
       
       // WhatsApp Web
       if (lowerMessage.includes('open whatsapp') || lowerMessage.includes('whatsapp खोलो') || 
-          lowerMessage.includes('whatsapp खोल')) {
+          lowerMessage.includes('whatsapp खोल') || lowerMessage.includes('whatsapp open')) {
         window.open('https://web.whatsapp.com', '_blank');
         setMessages(prev => [...prev, 
           { role: 'user', content: userMessage },
@@ -81,11 +81,107 @@ export const useVoiceAssistant = () => {
       
       // Instagram
       if (lowerMessage.includes('open instagram') || lowerMessage.includes('instagram खोलो') || 
-          lowerMessage.includes('instagram खोल')) {
+          lowerMessage.includes('instagram खोल') || lowerMessage.includes('instagram open')) {
         window.open('https://www.instagram.com', '_blank');
         setMessages(prev => [...prev, 
           { role: 'user', content: userMessage },
           { role: 'assistant', content: 'Instagram खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // ChatGPT
+      if (lowerMessage.includes('open chatgpt') || lowerMessage.includes('chatgpt खोलो') || 
+          lowerMessage.includes('chatgpt खोल') || lowerMessage.includes('chat gpt')) {
+        window.open('https://chat.openai.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'ChatGPT खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Canva
+      if (lowerMessage.includes('open canva') || lowerMessage.includes('canva खोलो') || 
+          lowerMessage.includes('canva खोल')) {
+        window.open('https://www.canva.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'Canva खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // VS Code Web
+      if (lowerMessage.includes('open vscode') || lowerMessage.includes('visual studio code') || 
+          lowerMessage.includes('vs code') || lowerMessage.includes('वीएस कोड')) {
+        window.open('https://vscode.dev', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'VS Code Web खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Gmail
+      if (lowerMessage.includes('open gmail') || lowerMessage.includes('gmail खोलो') || 
+          lowerMessage.includes('gmail खोल') || lowerMessage.includes('email')) {
+        window.open('https://mail.google.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'Gmail खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Facebook
+      if (lowerMessage.includes('open facebook') || lowerMessage.includes('facebook खोलो') || 
+          lowerMessage.includes('facebook खोल')) {
+        window.open('https://www.facebook.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'Facebook खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Twitter/X
+      if (lowerMessage.includes('open twitter') || lowerMessage.includes('twitter खोलो') || 
+          lowerMessage.includes('open x') || lowerMessage.includes('twitter खोल')) {
+        window.open('https://x.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'Twitter/X खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // LinkedIn
+      if (lowerMessage.includes('open linkedin') || lowerMessage.includes('linkedin खोलो') || 
+          lowerMessage.includes('linkedin खोल')) {
+        window.open('https://www.linkedin.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'LinkedIn खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // GitHub
+      if (lowerMessage.includes('open github') || lowerMessage.includes('github खोलो') || 
+          lowerMessage.includes('github खोल')) {
+        window.open('https://github.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'GitHub खोल रहा हूं...' }
         ]);
         setIsProcessing(false);
         return;
