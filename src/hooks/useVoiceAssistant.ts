@@ -1,37 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useConversationHistory, type Message } from '@/hooks/useConversationHistory';
+
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export const useVoiceAssistant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
-  
-  const {
-    currentConversationId,
-    getCurrentConversation,
-    updateConversationMessages,
-    createNewConversation,
-  } = useConversationHistory();
-
-  // Load current conversation messages
-  useEffect(() => {
-    const currentConv = getCurrentConversation();
-    if (currentConv) {
-      setMessages(currentConv.messages);
-    } else {
-      setMessages([]);
-    }
-  }, [currentConversationId, getCurrentConversation]);
-
-  // Save messages to conversation history
-  useEffect(() => {
-    if (messages.length > 0 && currentConversationId) {
-      updateConversationMessages(currentConversationId, messages);
-    }
-  }, [messages, currentConversationId]);
 
   const processVoiceInput = async (userMessage: string) => {
     setIsProcessing(true);
@@ -185,12 +165,6 @@ export const useVoiceAssistant = () => {
         ]);
         setIsProcessing(false);
         return;
-      }
-
-      // Create new conversation if none exists
-      let convId = currentConversationId;
-      if (!convId) {
-        convId = createNewConversation();
       }
 
       console.log('User message:', userMessage);

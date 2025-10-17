@@ -14,37 +14,35 @@ interface ConversationDisplayProps {
 }
 
 const ConversationDisplay = ({ messages, isListening }: ConversationDisplayProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isListening]);
+  }, [messages]);
 
   return (
     <ScrollArea className="flex-1 w-full px-4 relative">
-      <div ref={scrollRef} className="max-w-3xl mx-auto space-y-4 py-4">
+      <div className="max-w-3xl mx-auto space-y-4 py-4">
         {messages.map((message, index) => (
           <div
-            key={`${index}-${message.content.substring(0, 20)}`}
+            key={index}
             className={cn(
-              "flex gap-3 items-start animate-fade-in",
+              "flex gap-3 items-start",
               message.role === 'user' ? "justify-end" : "justify-start"
             )}
           >
             {message.role === 'assistant' && (
               <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 border-2 border-primary/50">
                 <Bot className="h-6 w-6 text-background" />
-                <div className="absolute inset-0 rounded-full border-2 border-primary animate-pulse" />
               </div>
             )}
             
             <div
               className={cn(
-                "rounded-2xl px-4 py-3 max-w-[80%] backdrop-blur-sm border-2 transition-all hover:scale-[1.02]",
+                "rounded-2xl px-4 py-3 max-w-[80%] backdrop-blur-sm border-2",
                 message.role === 'user'
-                  ? "bg-primary/20 text-foreground border-primary shadow-neon"
+                  ? "bg-primary/20 text-foreground border-primary"
                   : "bg-card/50 border-primary/30"
               )}
             >
@@ -63,15 +61,15 @@ const ConversationDisplay = ({ messages, isListening }: ConversationDisplayProps
         <div ref={messagesEndRef} />
 
         {isListening && (
-          <div className="flex gap-3 items-start justify-start animate-fade-in">
-            <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 animate-pulse-neon border-2 border-primary">
+          <div className="flex gap-3 items-start justify-start">
+            <div className="relative h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 border-2 border-primary">
               <Bot className="h-6 w-6 text-background" />
             </div>
             <div className="rounded-2xl px-4 py-3 bg-card/50 border-2 border-primary/30 backdrop-blur-sm">
               <div className="flex gap-1">
-                <span className="w-2 h-2 rounded-full bg-primary animate-bounce shadow-neon" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-primary animate-bounce shadow-neon" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-primary animate-bounce shadow-neon" style={{ animationDelay: '300ms' }} />
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
