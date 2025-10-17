@@ -24,7 +24,7 @@ export const useVoiceAssistant = () => {
     } else {
       setMessages([]);
     }
-  }, [currentConversationId]);
+  }, [currentConversationId, getCurrentConversation]);
 
   // Save messages to conversation history
   useEffect(() => {
@@ -37,6 +37,60 @@ export const useVoiceAssistant = () => {
     setIsProcessing(true);
 
     try {
+      // Handle voice commands for opening applications
+      const lowerMessage = userMessage.toLowerCase();
+      
+      // Google Search
+      if (lowerMessage.includes('google search') || lowerMessage.includes('गूगल सर्च') || 
+          lowerMessage.includes('search on google') || lowerMessage.includes('गूगल पर सर्च')) {
+        const searchQuery = userMessage.replace(/google search|गूगल सर्च|search on google|गूगल पर सर्च/gi, '').trim();
+        if (searchQuery) {
+          window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+          setMessages(prev => [...prev, 
+            { role: 'user', content: userMessage },
+            { role: 'assistant', content: `Google search खोल रहा हूं: ${searchQuery}` }
+          ]);
+          setIsProcessing(false);
+          return;
+        }
+      }
+      
+      // YouTube
+      if (lowerMessage.includes('open youtube') || lowerMessage.includes('youtube खोलो') || 
+          lowerMessage.includes('youtube खोल')) {
+        window.open('https://www.youtube.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'YouTube खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // WhatsApp Web
+      if (lowerMessage.includes('open whatsapp') || lowerMessage.includes('whatsapp खोलो') || 
+          lowerMessage.includes('whatsapp खोल')) {
+        window.open('https://web.whatsapp.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'WhatsApp Web खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Instagram
+      if (lowerMessage.includes('open instagram') || lowerMessage.includes('instagram खोलो') || 
+          lowerMessage.includes('instagram खोल')) {
+        window.open('https://www.instagram.com', '_blank');
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'Instagram खोल रहा हूं...' }
+        ]);
+        setIsProcessing(false);
+        return;
+      }
+
       // Create new conversation if none exists
       let convId = currentConversationId;
       if (!convId) {

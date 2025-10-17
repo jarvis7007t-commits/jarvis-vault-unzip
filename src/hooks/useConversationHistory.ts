@@ -19,7 +19,7 @@ export const useConversationHistory = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
-  // Load conversations from localStorage
+  // Load conversations from localStorage on mount only
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -34,7 +34,7 @@ export const useConversationHistory = () => {
         console.error('Error loading conversations:', error);
       }
     }
-  }, []);
+  }, []); // Empty dependency array - run only on mount
 
   // Save conversations to localStorage
   const saveConversations = (convs: Conversation[]) => {
