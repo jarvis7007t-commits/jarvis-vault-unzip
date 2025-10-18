@@ -68,7 +68,7 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Manage Applications</DialogTitle>
           <DialogDescription>
@@ -76,7 +76,7 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-2 flex-1 overflow-y-auto">
           <div className="space-y-2">
             <Label htmlFor="displayName">Display Name *</Label>
             <Input
@@ -113,10 +113,10 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
           </Button>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 flex-shrink-0">
           <Label>Saved Applications ({apps.length})</Label>
-          <ScrollArea className="h-[200px] rounded border">
-            <div className="p-4 space-y-2">
+          <ScrollArea className="h-[180px] rounded border">
+            <div className="p-3 space-y-2">
               {apps.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No saved applications yet

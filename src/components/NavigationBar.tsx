@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Bot, Plus, Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar';
 import AddAppModal from './AddAppModal';
 
 const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; isProcessing: boolean }) => {
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [isCharging, setIsCharging] = useState(false);
   const [showAddAppModal, setShowAddAppModal] = useState(false);
+  const { toggleSidebar } = useSidebar();
 
   useEffect(() => {
     const updateBattery = async () => {
@@ -44,17 +46,20 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
       <header className="relative border-b border-primary/20 bg-card/10 backdrop-blur-md z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <button 
+              onClick={toggleSidebar}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+            >
               <div className="relative h-12 w-12 rounded-full gradient-primary flex items-center justify-center">
                 <Bot className="h-7 w-7 text-background" />
               </div>
-              <div>
+              <div className="text-left">
                 <h1 className="text-2xl font-bold text-primary tracking-wider">JARVIS</h1>
                 <p className="text-xs text-primary/70 font-mono">
                   {isListening ? '⚡ SPEAKING...' : isProcessing ? '⚙ PROCESSING...' : '● READY'}
                 </p>
               </div>
-            </div>
+            </button>
 
             <div className="flex items-center gap-4">
               {batteryLevel !== null && (
