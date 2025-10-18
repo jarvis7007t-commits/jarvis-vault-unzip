@@ -1,7 +1,7 @@
-import { Bot } from 'lucide-react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import ConversationDisplay from '@/components/ConversationDisplay';
 import JarvisFace from '@/components/JarvisFace';
+import NavigationBar from '@/components/NavigationBar';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 import jarvisBg from '@/assets/jarvis-bg.jpg';
 
@@ -17,22 +17,8 @@ const Index = () => {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
 
-      {/* Header */}
-      <header className="relative border-b border-primary/20 bg-card/10 backdrop-blur-md z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="relative h-12 w-12 rounded-full gradient-primary flex items-center justify-center">
-              <Bot className="h-7 w-7 text-background" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-primary tracking-wider">JARVIS</h1>
-              <p className="text-xs text-primary/70 font-mono">
-                {isListening ? '⚡ SPEAKING...' : isProcessing ? '⚙ PROCESSING...' : '● READY'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navigation Bar */}
+      <NavigationBar isListening={isListening} isProcessing={isProcessing} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center relative z-10">

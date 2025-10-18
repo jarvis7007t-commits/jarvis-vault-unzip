@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSavedApps } from './useSavedApps';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -12,13 +13,89 @@ export const useVoiceAssistant = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
+  const { findAppByName } = useSavedApps();
 
   const processVoiceInput = async (userMessage: string) => {
     setIsProcessing(true);
 
     try {
-      // Handle voice commands for opening applications
       const lowerMessage = userMessage.toLowerCase();
+
+      // Handle "call" commands
+      if (lowerMessage.includes('call ')) {
+        const contactName = lowerMessage.replace(/call|कॉल|फोन|phone/gi, '').trim();
+        const app = findAppByName(contactName);
+        
+        if (app && app.url.startsWith('tel:')) {
+          window.open(app.url, '_self');
+          setMessages(prev => [...prev, 
+            { role: 'user', content: userMessage },
+            { role: 'assistant', content: `Calling ${app.displayName}...` }
+          ]);
+          setIsProcessing(false);
+          return;
+        } else {
+          setMessages(prev => [...prev, 
+            { role: 'user', content: userMessage },
+            { role: 'assistant', content: `No phone number saved for ${contactName}` }
+          ]);
+          setIsProcessing(false);
+          return;
+        }
+      }
+
+      // Handle "send whatsapp message" commands
+      if (lowerMessage.includes('whatsapp message') || lowerMessage.includes('message on whatsapp')) {
+        const parts = userMessage.split(':');
+        if (parts.length >= 2) {
+          const contactPart = parts[0].toLowerCase();
+          const messagePart = parts.slice(1).join(':').trim();
+          const contactName = contactPart
+            .replace(/send|whatsapp|message|to|on|भेजो|मैसेज/gi, '')
+            .trim();
+          
+          const app = findAppByName(contactName);
+          
+          if (app && (app.url.includes('wa.me') || app.url.includes('whatsapp'))) {
+            const waUrl = `${app.url}${app.url.includes('?') ? '&' : '?'}text=${encodeURIComponent(messagePart)}`;
+            window.open(waUrl, '_blank');
+            setMessages(prev => [...prev, 
+              { role: 'user', content: userMessage },
+              { role: 'assistant', content: `Sending WhatsApp message to ${app.displayName}...` }
+            ]);
+            setIsProcessing(false);
+            return;
+          } else {
+            setMessages(prev => [...prev, 
+              { role: 'user', content: userMessage },
+              { role: 'assistant', content: `No WhatsApp link saved for ${contactName}` }
+            ]);
+            setIsProcessing(false);
+            return;
+          }
+        }
+      }
+
+      // Handle "open" commands for saved apps
+      if (lowerMessage.includes('open ') || lowerMessage.includes('खोलो') || lowerMessage.includes('खोल')) {
+        const appName = lowerMessage
+          .replace(/open|खोलो|खोल/gi, '')
+          .trim();
+        
+        const app = findAppByName(appName);
+        
+        if (app) {
+          window.open(app.url, '_blank');
+          setMessages(prev => [...prev, 
+            { role: 'user', content: userMessage },
+            { role: 'assistant', content: `Opening ${app.displayName}...` }
+          ]);
+          setIsProcessing(false);
+          return;
+        }
+      }
+      
+      // Handle voice commands for opening applications
       
       // Google Search
       if (lowerMessage.includes('google search') || lowerMessage.includes('गूगल सर्च') || 
