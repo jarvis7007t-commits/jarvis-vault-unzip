@@ -16,7 +16,6 @@ interface AddAppModalProps {
 const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
   const [displayName, setDisplayName] = useState('');
   const [url, setUrl] = useState('');
-  const [aliases, setAliases] = useState('');
   const { apps, addApp, deleteApp } = useSavedApps();
   const { toast } = useToast();
 
@@ -41,12 +40,7 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
       return;
     }
 
-    const aliasArray = aliases
-      .split(',')
-      .map(a => a.trim())
-      .filter(a => a.length > 0);
-
-    addApp(displayName.trim(), url.trim(), aliasArray);
+    addApp(displayName.trim(), url.trim(), []);
     
     toast({
       title: "✓ App Added",
@@ -55,7 +49,6 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
 
     setDisplayName('');
     setUrl('');
-    setAliases('');
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -97,16 +90,6 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="aliases">Aliases (optional, comma-separated)</Label>
-            <Input
-              id="aliases"
-              placeholder="e.g., yt, tube, video site"
-              value={aliases}
-              onChange={(e) => setAliases(e.target.value)}
-            />
-          </div>
-
           <Button onClick={handleAdd} className="w-full">
             <Plus className="mr-2 h-4 w-4" />
             Add Application
@@ -130,14 +113,9 @@ const AddAppModal = ({ open, onClose }: AddAppModalProps) => {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{app.displayName}</p>
                       <p className="text-xs text-muted-foreground truncate">{app.url}</p>
-                      {app.aliases && app.aliases.length > 0 && (
-                        <p className="text-xs text-primary/60 mt-1">
-                          Aliases: {app.aliases.join(', ')}
-                        </p>
-                      )}
                     </div>
                     <Button
-                      variant="ghost"
+                      variant="destructive"
                       size="icon"
                       onClick={() => handleDelete(app.id, app.displayName)}
                       className="ml-2 shrink-0"

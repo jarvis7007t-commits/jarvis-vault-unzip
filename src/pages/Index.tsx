@@ -8,12 +8,28 @@ import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 import jarvisBg from '@/assets/jarvis-bg.jpg';
 
 const Index = () => {
-  const { messages, isProcessing, isListening, processVoiceInput } = useVoiceAssistant();
+  const { 
+    messages, 
+    isProcessing, 
+    isListening, 
+    processVoiceInput,
+    conversations,
+    currentConversationId,
+    handleNewChat,
+    handleSwitchConversation,
+    handleDeleteConversation
+  } = useVoiceAssistant();
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full relative overflow-hidden">
-        <AppSidebar />
+        <AppSidebar 
+          conversations={conversations}
+          currentConversationId={currentConversationId}
+          onNewChat={handleNewChat}
+          onSwitchConversation={handleSwitchConversation}
+          onDeleteConversation={handleDeleteConversation}
+        />
         
         <div className="flex flex-col flex-1 min-h-screen relative overflow-hidden">
           {/* Animated Background */}

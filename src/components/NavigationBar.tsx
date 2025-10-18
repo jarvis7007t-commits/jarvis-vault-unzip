@@ -43,7 +43,7 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
 
   return (
     <>
-      <header className="relative border-b border-primary/20 bg-card/10 backdrop-blur-md z-10">
+      <header className="relative border-b border-border bg-background z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button 
@@ -54,8 +54,8 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
                 <Bot className="h-7 w-7 text-background" />
               </div>
               <div className="text-left">
-                <h1 className="text-2xl font-bold text-primary tracking-wider">JARVIS</h1>
-                <p className="text-xs text-primary/70 font-mono">
+                <h1 className="text-2xl font-bold text-foreground tracking-wider">JARVIS</h1>
+                <p className="text-xs text-muted-foreground font-mono">
                   {isListening ? '⚡ SPEAKING...' : isProcessing ? '⚙ PROCESSING...' : '● READY'}
                 </p>
               </div>
@@ -63,7 +63,7 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
 
             <div className="flex items-center gap-4">
               {batteryLevel !== null && (
-                <div className="flex items-center gap-2 text-primary/80">
+                <div className="flex items-center gap-2 text-foreground">
                   {getBatteryIcon()}
                   <span className="text-sm font-mono">{batteryLevel}%</span>
                 </div>
@@ -72,7 +72,7 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
                 variant="outline"
                 size="icon"
                 onClick={() => setShowAddAppModal(true)}
-                className="rounded-full"
+                className="rounded-full border-border hover:bg-muted"
               >
                 <Plus className="h-5 w-5" />
               </Button>

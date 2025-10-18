@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useSavedApps } from './useSavedApps';
+import { useConversationHistory } from './useConversationHistory';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -14,6 +15,30 @@ export const useVoiceAssistant = () => {
   const [isListening, setIsListening] = useState(false);
   const { toast } = useToast();
   const { findAppByName } = useSavedApps();
+  const { 
+    conversations, 
+    currentConversationId, 
+    createNewConversation, 
+    updateConversationMessages,
+    getCurrentConversation,
+    deleteConversation,
+    switchConversation
+  } = useConversationHistory();
+
+  // Load current conversation messages
+  useEffect(() => {
+    const current = getCurrentConversation();
+    if (current) {
+      setMessages(current.messages);
+    }
+  }, [currentConversationId]);
+
+  // Save messages to current conversation
+  useEffect(() => {
+    if (currentConversationId && messages.length > 0) {
+      updateConversationMessages(currentConversationId, messages);
+    }
+  }, [messages, currentConversationId]);
 
   const processVoiceInput = async (userMessage: string) => {
     setIsProcessing(true);
@@ -307,10 +332,31 @@ export const useVoiceAssistant = () => {
     }
   };
 
+  const handleNewChat = () => {
+    createNewConversation();
+    setMessages([]);
+  };
+
+  const handleSwitchConversation = (id: string) => {
+    switchConversation(id);
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    deleteConversation(id);
+    if (id === currentConversationId) {
+      setMessages([]);
+    }
+  };
+
   return {
     messages,
     isProcessing,
     isListening,
-    processVoiceInput
+    processVoiceInput,
+    conversations,
+    currentConversationId,
+    handleNewChat,
+    handleSwitchConversation,
+    handleDeleteConversation,
   };
 };
