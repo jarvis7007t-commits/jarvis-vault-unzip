@@ -336,34 +336,62 @@ export const useVoiceAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
 
-      // Convert text to speech using browser's Speech Synthesis
-      console.log('Converting text to speech...');
+      // Convert text to speech using ElevenLabs TTS
+      console.log('Converting text to speech with ElevenLabs...');
       
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(assistantMessage);
-        utterance.lang = 'en-IN'; // English (India)
-        utterance.rate = 0.9; // Slightly slower for clarity
-        utterance.pitch = 1.0;
-        
-        utterance.onend = () => {
-          setIsListening(false);
-        };
-        
-        utterance.onerror = (event) => {
-          console.error('Speech synthesis error:', event);
-          setIsListening(false);
-        };
-        
-        window.speechSynthesis.speak(utterance);
-        console.log('Speaking response...');
-      } else {
-        // Fallback: just end the listening state
-        setIsListening(false);
-        toast({
-          title: "ℹ️ Info",
-          description: "Text-to-speech not supported in this browser",
-          variant: "default",
+      try {
+        const selectedVoice = localStorage.getItem('selectedVoice') || 'Aria';
+        const { data: ttsData, error: ttsError } = await supabase.functions.invoke('text-to-speech', {
+          body: { text: assistantMessage, voice: selectedVoice }
         });
+
+        if (ttsError) {
+          console.error('TTS error:', ttsError);
+          throw ttsError;
+        }
+
+        if (ttsData?.audioContent) {
+          // Decode base64 audio and play
+          const audioData = atob(ttsData.audioContent);
+          const audioArray = new Uint8Array(audioData.length);
+          for (let i = 0; i < audioData.length; i++) {
+            audioArray[i] = audioData.charCodeAt(i);
+          }
+          
+          const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          
+          audio.onended = () => {
+            setIsListening(false);
+            URL.revokeObjectURL(audioUrl);
+          };
+          
+          audio.onerror = (error) => {
+            console.error('Audio playback error:', error);
+            setIsListening(false);
+          };
+          
+          await audio.play();
+          console.log('Playing ElevenLabs TTS audio...');
+        } else {
+          setIsListening(false);
+        }
+      } catch (ttsError) {
+        console.error('TTS error:', ttsError);
+        setIsListening(false);
+        // Fallback to browser speech synthesis if ElevenLabs fails
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(assistantMessage);
+          utterance.lang = 'en-IN';
+          utterance.rate = 0.9;
+          utterance.pitch = 1.0;
+          utterance.onend = () => setIsListening(false);
+          utterance.onerror = () => setIsListening(false);
+          window.speechSynthesis.speak(utterance);
+        } else {
+          setIsListening(false);
+        }
       }
 
     } catch (error: any) {

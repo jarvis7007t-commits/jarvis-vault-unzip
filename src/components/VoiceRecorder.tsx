@@ -3,6 +3,7 @@ import { Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void;
@@ -13,6 +14,7 @@ const VoiceRecorder = ({ onTranscript, isProcessing }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Check if browser supports Speech Recognition
@@ -122,7 +124,7 @@ const VoiceRecorder = ({ onTranscript, isProcessing }: VoiceRecorderProps) => {
       </div>
 
       <p className="text-sm text-primary font-mono tracking-wide">
-        {isProcessing ? '⚙ PROCESSING...' : isRecording ? '⏹ TAP TO STOP' : '🎤 TAP TO SPEAK'}
+        {isProcessing ? '⚙ ' + t('voice.processing').toUpperCase() : isRecording ? '⏹ ' + t('voice.tapToStop').toUpperCase() : t('voice.tapToSpeak').toUpperCase()}
       </p>
     </div>
   );

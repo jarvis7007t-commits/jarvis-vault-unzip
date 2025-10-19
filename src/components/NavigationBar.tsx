@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bot, Plus, Battery, BatteryCharging, BatteryFull, BatteryLow, BatteryMedium } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useLanguage } from '@/contexts/LanguageContext';
 import AddAppModal from './AddAppModal';
 
 const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; isProcessing: boolean }) => {
@@ -9,6 +10,7 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
   const [isCharging, setIsCharging] = useState(false);
   const [showAddAppModal, setShowAddAppModal] = useState(false);
   const { toggleSidebar } = useSidebar();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const updateBattery = async () => {
@@ -56,7 +58,7 @@ const NavigationBar = ({ isListening, isProcessing }: { isListening: boolean; is
               <div className="text-left">
                 <h1 className="text-2xl font-bold text-foreground tracking-wider">JARVIS</h1>
                 <p className="text-xs text-muted-foreground font-mono">
-                  {isListening ? '⚡ SPEAKING...' : isProcessing ? '⚙ PROCESSING...' : '● READY'}
+                  {isListening ? '⚡ ' + t('voice.processing').toUpperCase() : isProcessing ? '⚙ ' + t('voice.processing').toUpperCase() : '● ' + t('voice.jarvisReady').toUpperCase()}
                 </p>
               </div>
             </button>

@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { User } from '@supabase/supabase-js';
 
 interface Conversation {
@@ -44,6 +45,7 @@ export function AppSidebar({
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -61,8 +63,8 @@ export function AppSidebar({
     await supabase.auth.signOut();
     setUser(null);
     toast({
-      title: "✅ लॉगआउट सफल",
-      description: "आप लॉगआउट हो गए हैं",
+      title: "✅ " + t('common.success'),
+      description: t('nav.logout'),
     });
   };
 
@@ -76,7 +78,7 @@ export function AppSidebar({
             className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
-            <span>New Chat</span>
+            <span>{t('nav.newChat')}</span>
           </Button>
         </div>
 
@@ -139,7 +141,7 @@ export function AppSidebar({
                   className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   <Settings className="h-4 w-4" />
-                  <span>सेटिंग्स</span>
+                  <span>{t('nav.settings')}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -158,7 +160,7 @@ export function AppSidebar({
               className="w-full justify-start gap-2"
             >
               <LogOut className="h-4 w-4" />
-              <span>लॉगआउट</span>
+              <span>{t('nav.logout')}</span>
             </Button>
           </div>
         ) : (
@@ -168,7 +170,7 @@ export function AppSidebar({
             className="w-full justify-start gap-2"
           >
             <LogIn className="h-4 w-4" />
-            <span>लॉगिन करें</span>
+            <span>{t('nav.login')}</span>
           </Button>
         )}
       </SidebarFooter>
