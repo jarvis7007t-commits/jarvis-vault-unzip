@@ -122,19 +122,67 @@ export const useVoiceAssistant = () => {
       
       // Handle voice commands for opening applications
       
-      // Google Search
+      // Google Search - now with real-time search
       if (lowerMessage.includes('google search') || lowerMessage.includes('गूगल सर्च') || 
-          lowerMessage.includes('search on google') || lowerMessage.includes('गूगल पर सर्च')) {
-        const searchQuery = userMessage.replace(/google search|गूगल सर्च|search on google|गूगल पर सर्च/gi, '').trim();
+          lowerMessage.includes('search on google') || lowerMessage.includes('गूगल पर सर्च') ||
+          lowerMessage.includes('search for') || lowerMessage.includes('सर्च करो')) {
+        const searchQuery = userMessage.replace(/google search|गूगल सर्च|search on google|गूगल पर सर्च|search for|सर्च करो/gi, '').trim();
         if (searchQuery) {
-          window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
           setMessages(prev => [...prev, 
             { role: 'user', content: userMessage },
-            { role: 'assistant', content: `Google search खोल रहा हूं: ${searchQuery}` }
+            { role: 'assistant', content: `इंटरनेट पर सर्च कर रहा हूं: ${searchQuery}...` }
           ]);
+          
+          try {
+            const { data: searchData, error: searchError } = await supabase.functions.invoke('web-search', {
+              body: { query: searchQuery }
+            });
+
+            if (searchError) throw searchError;
+
+            const searchResults = searchData.results || 'कोई परिणाम नहीं मिला';
+            setMessages(prev => [...prev, 
+              { role: 'assistant', content: searchResults }
+            ]);
+          } catch (error: any) {
+            console.error('Search error:', error);
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`, '_blank');
+            setMessages(prev => [...prev, 
+              { role: 'assistant', content: `Google search खोल रहा हूं: ${searchQuery}` }
+            ]);
+          }
           setIsProcessing(false);
           return;
         }
+      }
+
+      // News command
+      if (lowerMessage.includes('news') || lowerMessage.includes('खबर') || 
+          lowerMessage.includes('समाचार') || lowerMessage.includes('न्यूज')) {
+        setMessages(prev => [...prev, 
+          { role: 'user', content: userMessage },
+          { role: 'assistant', content: 'ताज़ा खबरें ला रहा हूं...' }
+        ]);
+        
+        try {
+          const { data: newsData, error: newsError } = await supabase.functions.invoke('get-news', {
+            body: { category: 'general' }
+          });
+
+          if (newsError) throw newsError;
+
+          const newsResults = newsData.news || 'कोई खबर नहीं मिली';
+          setMessages(prev => [...prev, 
+            { role: 'assistant', content: newsResults }
+          ]);
+        } catch (error: any) {
+          console.error('News error:', error);
+          setMessages(prev => [...prev, 
+            { role: 'assistant', content: 'खबरें लाने में समस्या हुई' }
+          ]);
+        }
+        setIsProcessing(false);
+        return;
       }
       
       // YouTube

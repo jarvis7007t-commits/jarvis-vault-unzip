@@ -1,4 +1,5 @@
 import { Settings, Plus, MessageSquare, Trash2, LogIn, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +13,10 @@ import {
 } from '@/components/ui/sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import type { User } from '@supabase/supabase-js';
 
 interface Conversation {
   id: string;
@@ -37,7 +41,30 @@ export function AppSidebar({
   onSwitchConversation,
   onDeleteConversation 
 }: AppSidebarProps) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    toast({
+      title: "✅ लॉगआउट सफल",
+      description: "आप लॉगआउट हो गए हैं",
+    });
+  };
 
   return (
     <Sidebar className="border-r border-border bg-background">
@@ -107,9 +134,12 @@ export function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-muted-foreground hover:text-foreground hover:bg-muted">
+                <SidebarMenuButton 
+                  onClick={() => navigate('/settings')}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
                   <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                  <span>सेटिंग्स</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -119,23 +149,28 @@ export function AppSidebar({
 
       {/* Login/Logout at Bottom */}
       <SidebarFooter className="border-t border-border bg-background p-3">
-        <Button
-          onClick={() => setIsLoggedIn(!isLoggedIn)}
-          variant="outline"
-          className="w-full justify-start gap-2"
-        >
-          {isLoggedIn ? (
-            <>
+        {user ? (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full justify-start gap-2"
+            >
               <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </>
-          ) : (
-            <>
-              <LogIn className="h-4 w-4" />
-              <span>Login</span>
-            </>
-          )}
-        </Button>
+              <span>लॉगआउट</span>
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={() => navigate('/auth')}
+            variant="outline"
+            className="w-full justify-start gap-2"
+          >
+            <LogIn className="h-4 w-4" />
+            <span>लॉगिन करें</span>
+          </Button>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
