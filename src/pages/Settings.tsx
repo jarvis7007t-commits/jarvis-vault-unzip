@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { User, Bell, Globe, Mic, Moon, Sun, LogOut, ArrowLeft, Languages, Volume2 } from 'lucide-react';
+import { VoiceTestPanel } from '@/components/VoiceTestPanel';
 
 export default function Settings() {
   const [user, setUser] = useState<any>(null);
@@ -19,6 +20,9 @@ export default function Settings() {
   const [searchEnabled, setSearchEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState(() => {
     return localStorage.getItem('selectedVoice') || 'Aria';
+  });
+  const [ttsProvider, setTtsProvider] = useState(() => {
+    return localStorage.getItem('ttsProvider') || 'google';
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -59,6 +63,15 @@ export default function Settings() {
     toast({
       title: t('common.success'),
       description: `${t('settings.language')}: ${lang}`,
+    });
+  };
+
+  const handleTtsProviderChange = (provider: string) => {
+    setTtsProvider(provider);
+    localStorage.setItem('ttsProvider', provider);
+    toast({
+      title: t('common.success'),
+      description: `TTS Provider: ${provider === 'google' ? 'Google AI Studio (Hindi)' : 'ElevenLabs'}`,
     });
   };
 
@@ -162,22 +175,51 @@ export default function Settings() {
             </CardTitle>
             <CardDescription>{t('settings.selectVoice')}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Label htmlFor="voice-model">{t('settings.voiceModel')}</Label>
-            <Select value={selectedVoice} onValueChange={handleVoiceChange}>
-              <SelectTrigger id="voice-model">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Aria">Aria (Female)</SelectItem>
-                <SelectItem value="Roger">Roger (Male)</SelectItem>
-                <SelectItem value="Sarah">Sarah (Female)</SelectItem>
-                <SelectItem value="Laura">Laura (Female)</SelectItem>
-                <SelectItem value="Charlie">Charlie (Male)</SelectItem>
-              </SelectContent>
-            </Select>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="tts-provider">TTS Provider</Label>
+              <Select value={ttsProvider} onValueChange={handleTtsProviderChange}>
+                <SelectTrigger id="tts-provider">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="google">🇮🇳 Google AI Studio (Hindi Voice)</SelectItem>
+                  <SelectItem value="elevenlabs">🎙️ ElevenLabs (Multiple Voices)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {ttsProvider === 'elevenlabs' && (
+              <div className="space-y-2">
+                <Label htmlFor="voice-model">{t('settings.voiceModel')}</Label>
+                <Select value={selectedVoice} onValueChange={handleVoiceChange}>
+                  <SelectTrigger id="voice-model">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Aria">Aria (Female)</SelectItem>
+                    <SelectItem value="Roger">Roger (Male)</SelectItem>
+                    <SelectItem value="Sarah">Sarah (Female)</SelectItem>
+                    <SelectItem value="Laura">Laura (Female)</SelectItem>
+                    <SelectItem value="Charlie">Charlie (Male)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {ttsProvider === 'google' && (
+              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-2">
+                <p className="text-sm font-medium">Voice: hi-IN-Standard-A</p>
+                <p className="text-xs text-muted-foreground">
+                  Natural sounding Hindi female voice powered by Google AI Studio
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Voice Test Panel */}
+        <VoiceTestPanel />
 
         {/* Features */}
         <Card>

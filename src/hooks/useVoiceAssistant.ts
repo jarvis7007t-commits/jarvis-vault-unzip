@@ -336,14 +336,33 @@ export const useVoiceAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
 
-      // Convert text to speech using ElevenLabs TTS
-      console.log('Converting text to speech with ElevenLabs...');
+      // Convert text to speech
+      console.log('Converting text to speech...');
       
       try {
+        const selectedProvider = localStorage.getItem('ttsProvider') || 'google';
         const selectedVoice = localStorage.getItem('selectedVoice') || 'Aria';
-        const { data: ttsData, error: ttsError } = await supabase.functions.invoke('text-to-speech', {
-          body: { text: assistantMessage, voice: selectedVoice }
-        });
+
+        let ttsData;
+        let ttsError;
+
+        if (selectedProvider === 'google') {
+          const response = await supabase.functions.invoke('google-tts', {
+            body: { 
+              text: assistantMessage,
+              languageCode: 'hi-IN',
+              voiceName: 'hi-IN-Standard-A'
+            }
+          });
+          ttsData = response.data;
+          ttsError = response.error;
+        } else {
+          const response = await supabase.functions.invoke('text-to-speech', {
+            body: { text: assistantMessage, voice: selectedVoice }
+          });
+          ttsData = response.data;
+          ttsError = response.error;
+        }
 
         if (ttsError) {
           console.error('TTS error:', ttsError);
@@ -373,7 +392,7 @@ export const useVoiceAssistant = () => {
           };
           
           await audio.play();
-          console.log('Playing ElevenLabs TTS audio...');
+          console.log('Playing TTS audio...');
         } else {
           setIsListening(false);
         }

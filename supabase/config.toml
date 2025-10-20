@@ -9,5 +9,8 @@ verify_jwt = false
 [functions.get-news]
 verify_jwt = false
 
+[functions.google-tts]
+verify_jwt = false
+
 [functions.text-to-speech]
 verify_jwt = false
