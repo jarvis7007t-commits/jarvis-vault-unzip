@@ -1,4 +1,4 @@
-import { Settings, Plus, MessageSquare, Trash2, LogIn, LogOut } from 'lucide-react';
+import { Settings, Plus, MessageSquare, Trash2, LogIn, LogOut, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -131,7 +131,7 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Settings */}
+        {/* Settings & Imagen AI */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -142,6 +142,15 @@ export function AppSidebar({
                 >
                   <Settings className="h-4 w-4" />
                   <span>{t('nav.settings')}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => navigate('/imagen-ai')}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Imagen AI</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
