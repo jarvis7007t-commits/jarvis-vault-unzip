@@ -22,23 +22,28 @@ serve(async (req) => {
       throw new Error('Prompt is required');
     }
 
-    // Using Google's Imagen AI API
+    console.log('Generating image with prompt:', prompt, 'aspectRatio:', aspectRatio);
+
+    // Using Google's Gemini 2.5 Flash Image model
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instances: [{
-            prompt: prompt,
+          contents: [{
+            role: "user",
+            parts: [{
+              text: prompt
+            }]
           }],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: aspectRatio,
-            negativePrompt: "low quality, blurry, distorted",
-            safetyFilterLevel: "block_some",
+          generationConfig: {
+            responseModalities: ["IMAGE"],
+            imageConfig: {
+              aspectRatio: aspectRatio
+            }
           }
         }),
       }
@@ -51,16 +56,21 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    console.log('API response received:', JSON.stringify(data).substring(0, 200));
     
-    // Extract the base64 image from the response
-    const imageBase64 = data.predictions?.[0]?.bytesBase64Encoded;
+    // Extract the base64 image from Gemini response
+    const imagePart = data.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData);
     
-    if (!imageBase64) {
+    if (!imagePart?.inlineData?.data) {
+      console.error('No image data in response:', JSON.stringify(data));
       throw new Error('No image data received from API');
     }
 
+    const imageBase64 = imagePart.inlineData.data;
+    const mimeType = imagePart.inlineData.mimeType || 'image/png';
+    
     // Convert base64 to data URL
-    const imageUrl = `data:image/png;base64,${imageBase64}`;
+    const imageUrl = `data:${mimeType};base64,${imageBase64}`;
 
     return new Response(
       JSON.stringify({ imageUrl }),
