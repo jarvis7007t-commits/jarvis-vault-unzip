@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, aspectRatio = "1:1" } = await req.json();
     const apiKey = Deno.env.get('GOOGLE_TTS_API_KEY');
 
     if (!apiKey) {
@@ -36,7 +36,7 @@ serve(async (req) => {
           }],
           parameters: {
             sampleCount: 1,
-            aspectRatio: "1:1",
+            aspectRatio: aspectRatio,
             negativePrompt: "low quality, blurry, distorted",
             safetyFilterLevel: "block_some",
           }
