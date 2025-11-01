@@ -33,6 +33,7 @@ interface AppSidebarProps {
   onNewChat: () => void;
   onSwitchConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
+  onOpenImagenAI?: () => void;
 }
 
 export function AppSidebar({ 
@@ -40,7 +41,8 @@ export function AppSidebar({
   currentConversationId, 
   onNewChat, 
   onSwitchConversation,
-  onDeleteConversation 
+  onDeleteConversation,
+  onOpenImagenAI
 }: AppSidebarProps) {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -146,7 +148,7 @@ export function AppSidebar({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton 
-                  onClick={() => navigate('/imagen-ai')}
+                  onClick={() => onOpenImagenAI?.()}
                   className="text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   <Sparkles className="h-4 w-4" />

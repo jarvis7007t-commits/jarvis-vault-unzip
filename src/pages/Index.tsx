@@ -1,13 +1,17 @@
+import { useState } from 'react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import ConversationDisplay from '@/components/ConversationDisplay';
 import JarvisFace from '@/components/JarvisFace';
 import NavigationBar from '@/components/NavigationBar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { ImagenAIDrawer } from '@/components/ImagenAIDrawer';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 import jarvisBg from '@/assets/jarvis-bg.jpg';
 
 const Index = () => {
+  const [isImagenAIOpen, setIsImagenAIOpen] = useState(false);
+  
   const { 
     messages, 
     isProcessing, 
@@ -29,6 +33,7 @@ const Index = () => {
           onNewChat={handleNewChat}
           onSwitchConversation={handleSwitchConversation}
           onDeleteConversation={handleDeleteConversation}
+          onOpenImagenAI={() => setIsImagenAIOpen(true)}
         />
         
         <div className="flex flex-col flex-1 min-h-screen relative overflow-hidden">
@@ -72,6 +77,9 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        {/* Imagen AI Drawer */}
+        <ImagenAIDrawer open={isImagenAIOpen} onOpenChange={setIsImagenAIOpen} />
       </div>
     </SidebarProvider>
   );
