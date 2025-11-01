@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { prompt, aspectRatio = "1:1" } = await req.json();
-    const apiKey = Deno.env.get('GOOGLE_TTS_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
-    if (!apiKey) {
-      throw new Error('Google API key not configured');
+    if (!lovableApiKey) {
+      throw new Error('Lovable API key not configured');
     }
 
     if (!prompt) {
@@ -24,53 +24,50 @@ serve(async (req) => {
 
     console.log('Generating image with prompt:', prompt, 'aspectRatio:', aspectRatio);
 
-    // Using Google's Gemini 2.5 Flash Image model
+    // Using Lovable AI Gateway with Nano Banana (Gemini 2.5 Flash Image)
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`,
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
+          model: "google/gemini-2.5-flash-image-preview",
+          messages: [{
             role: "user",
-            parts: [{
-              text: prompt
-            }]
+            content: `Generate an image: ${prompt}. Aspect ratio: ${aspectRatio}`
           }],
-          generationConfig: {
-            responseModalities: ["IMAGE"],
-            imageConfig: {
-              aspectRatio: aspectRatio
-            }
-          }
+          modalities: ["image", "text"]
         }),
       }
     );
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Imagen API error:', error);
+      console.error('Lovable AI error:', response.status, error);
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a few moments.');
+      }
+      if (response.status === 402) {
+        throw new Error('Credits exhausted. Please add credits to your Lovable workspace.');
+      }
+      
       throw new Error(`Failed to generate image: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('API response received:', JSON.stringify(data).substring(0, 200));
+    console.log('API response received');
     
-    // Extract the base64 image from Gemini response
-    const imagePart = data.candidates?.[0]?.content?.parts?.find((part: any) => part.inlineData);
+    // Extract the base64 image from Lovable AI response
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!imagePart?.inlineData?.data) {
-      console.error('No image data in response:', JSON.stringify(data));
+    if (!imageUrl) {
+      console.error('No image data in response');
       throw new Error('No image data received from API');
     }
-
-    const imageBase64 = imagePart.inlineData.data;
-    const mimeType = imagePart.inlineData.mimeType || 'image/png';
-    
-    // Convert base64 to data URL
-    const imageUrl = `data:${mimeType};base64,${imageBase64}`;
 
     return new Response(
       JSON.stringify({ imageUrl }),
