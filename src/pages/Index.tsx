@@ -5,12 +5,14 @@ import JarvisFace from '@/components/JarvisFace';
 import NavigationBar from '@/components/NavigationBar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ImagenAIDrawer } from '@/components/ImagenAIDrawer';
+import { AIModelDrawer } from '@/components/AIModelDrawer';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useVoiceAssistant } from '@/hooks/useVoiceAssistant';
 import jarvisBg from '@/assets/jarvis-bg.jpg';
 
 const Index = () => {
   const [isImagenAIOpen, setIsImagenAIOpen] = useState(false);
+  const [isAIModelOpen, setIsAIModelOpen] = useState(false);
   
   const { 
     messages, 
@@ -34,6 +36,7 @@ const Index = () => {
           onSwitchConversation={handleSwitchConversation}
           onDeleteConversation={handleDeleteConversation}
           onOpenImagenAI={() => setIsImagenAIOpen(true)}
+          onOpenAIModel={() => setIsAIModelOpen(true)}
         />
         
         <div className="flex flex-col flex-1 min-h-screen relative overflow-hidden">
@@ -80,6 +83,9 @@ const Index = () => {
 
         {/* Imagen AI Drawer */}
         <ImagenAIDrawer open={isImagenAIOpen} onOpenChange={setIsImagenAIOpen} />
+        
+        {/* AI Model Drawer */}
+        <AIModelDrawer open={isAIModelOpen} onOpenChange={setIsAIModelOpen} />
       </div>
     </SidebarProvider>
   );
