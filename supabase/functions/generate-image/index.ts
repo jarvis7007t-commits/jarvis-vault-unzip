@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, aspectRatio = "1:1" } = await req.json();
+    const { prompt, aspectRatio = "1:1", inputImage } = await req.json();
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!lovableApiKey) {
@@ -22,7 +22,28 @@ serve(async (req) => {
       throw new Error('Prompt is required');
     }
 
-    console.log('Generating image with prompt:', prompt, 'aspectRatio:', aspectRatio);
+    console.log('Generating image with prompt:', prompt, 'aspectRatio:', aspectRatio, 'has input image:', !!inputImage);
+
+    // Prepare message content
+    let messageContent;
+    if (inputImage) {
+      // If input image provided, send both text and image for editing/transformation
+      messageContent = [
+        {
+          type: "text",
+          text: `${prompt}. Aspect ratio: ${aspectRatio}`
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: inputImage // Can be data:image/png;base64,... or https://...
+          }
+        }
+      ];
+    } else {
+      // Just generate a new image
+      messageContent = `Generate an image: ${prompt}. Aspect ratio: ${aspectRatio}`;
+    }
 
     // Using Lovable AI Gateway with Nano Banana (Gemini 2.5 Flash Image)
     const response = await fetch(
@@ -37,7 +58,7 @@ serve(async (req) => {
           model: "google/gemini-2.5-flash-image-preview",
           messages: [{
             role: "user",
-            content: `Generate an image: ${prompt}. Aspect ratio: ${aspectRatio}`
+            content: messageContent
           }],
           modalities: ["image", "text"]
         }),

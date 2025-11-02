@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Square, RectangleHorizontal, RectangleVertical } from "lucide-react";
+import { Square, RectangleHorizontal, RectangleVertical, Upload } from "lucide-react";
 import { AspectRatioButton } from "@/components/AspectRatioButton";
 import { ImageDisplay } from "@/components/ImageDisplay";
 import { PromptInput } from "@/components/PromptInput";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -31,6 +32,24 @@ export const ImagenAIDrawer = ({ open, onOpenChange }: ImagenAIDrawerProps) => {
   const [aspectRatio, setAspectRatio] = useState<AspectRatioType>("1:1");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+        toast.success("इमेज सेलेक्ट हो गई!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -43,7 +62,11 @@ export const ImagenAIDrawer = ({ open, onOpenChange }: ImagenAIDrawerProps) => {
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt, aspectRatio },
+        body: { 
+          prompt, 
+          aspectRatio,
+          inputImage: selectedImage // Send selected image if available
+        },
       });
 
       if (error) throw error;
@@ -73,6 +96,36 @@ export const ImagenAIDrawer = ({ open, onOpenChange }: ImagenAIDrawerProps) => {
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <Button
+                onClick={handleImageSelect}
+                variant="outline"
+                className="flex-1 gap-2"
+                type="button"
+              >
+                <Upload className="w-4 h-4" />
+                {selectedImage ? "इमेज बदलें" : "इमेज सेलेक्ट करें"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            {selectedImage && (
+              <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={selectedImage} 
+                  alt="Selected" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+
           <PromptInput
             prompt={prompt}
             onPromptChange={setPrompt}
