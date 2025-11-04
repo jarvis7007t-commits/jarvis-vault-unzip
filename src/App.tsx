@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import ImagenAI from "./pages/ImagenAI";
+import Pixshop from "./pages/Pixshop";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/imagen-ai" element={<ImagenAI />} />
+          <Route path="/pixshop" element={<Pixshop />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

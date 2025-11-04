@@ -1,4 +1,4 @@
-import { Settings, Plus, MessageSquare, Trash2, LogIn, LogOut, Sparkles } from 'lucide-react';
+import { Settings, Plus, MessageSquare, Trash2, LogIn, LogOut, Sparkles, Wand2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sidebar,
@@ -164,6 +164,15 @@ export function AppSidebar({
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>AI Model</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => navigate('/pixshop')}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span>Pixshop AI</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
