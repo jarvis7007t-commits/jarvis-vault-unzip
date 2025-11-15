@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import VoiceRecorder from '@/components/VoiceRecorder';
+import { TextInput } from '@/components/TextInput';
 import ConversationDisplay from '@/components/ConversationDisplay';
 import JarvisFace from '@/components/JarvisFace';
 import NavigationBar from '@/components/NavigationBar';
@@ -70,11 +71,22 @@ const Index = () => {
             )}
           </main>
 
-          {/* Voice Recorder */}
-          <div className="relative border-t border-primary/20 bg-card/10 backdrop-blur-md py-8 z-10">
-            <div className="container mx-auto px-4 relative">
-              <VoiceRecorder 
-                onTranscript={processVoiceInput}
+          {/* Voice Recorder and Text Input */}
+          <div className="relative border-t border-primary/20 bg-card/10 backdrop-blur-md py-6 z-10">
+            <div className="container mx-auto px-4 relative space-y-4">
+              <div className="flex items-center justify-center">
+                <VoiceRecorder 
+                  onTranscript={processVoiceInput}
+                  isProcessing={isProcessing || isListening}
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-primary/20" />
+                <span className="text-xs text-muted-foreground">या (or)</span>
+                <div className="flex-1 h-px bg-primary/20" />
+              </div>
+              <TextInput 
+                onSubmit={processVoiceInput}
                 isProcessing={isProcessing || isListening}
               />
             </div>

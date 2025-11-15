@@ -27,8 +27,8 @@ const VoiceRecorder = ({ onTranscript, isProcessing }: VoiceRecorderProps) => {
 
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-IN'; // English (India) - understands both Hindi & English
+    recognition.interimResults = true;
+    recognition.lang = 'hi-IN'; // Hindi (India) for better Hindi recognition
     recognition.maxAlternatives = 3;
     
     recognition.onresult = (event: any) => {
