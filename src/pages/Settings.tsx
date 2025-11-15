@@ -22,7 +22,13 @@ export default function Settings() {
     return localStorage.getItem('selectedVoice') || 'Aria';
   });
   const [ttsProvider, setTtsProvider] = useState(() => {
-    return localStorage.getItem('ttsProvider') || 'google';
+    return localStorage.getItem('ttsProvider') || 'browser';
+  });
+  const [speechRate, setSpeechRate] = useState(() => {
+    return parseFloat(localStorage.getItem('speechRate') || '0.9');
+  });
+  const [hindiVoice, setHindiVoice] = useState(() => {
+    return localStorage.getItem('hindiVoice') || 'hi-IN';
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -71,7 +77,26 @@ export default function Settings() {
     localStorage.setItem('ttsProvider', provider);
     toast({
       title: t('common.success'),
-      description: `TTS Provider: ${provider === 'google' ? 'Google AI Studio (Hindi)' : 'ElevenLabs'}`,
+      description: `Voice Provider: ${provider === 'browser' ? 'Browser (Free)' : provider}`,
+    });
+  };
+
+  const handleSpeechRateChange = (rate: string) => {
+    const rateValue = parseFloat(rate);
+    setSpeechRate(rateValue);
+    localStorage.setItem('speechRate', rate);
+    toast({
+      title: t('common.success'),
+      description: `Speech Rate: ${rate}x`,
+    });
+  };
+
+  const handleHindiVoiceChange = (voice: string) => {
+    setHindiVoice(voice);
+    localStorage.setItem('hindiVoice', voice);
+    toast({
+      title: t('common.success'),
+      description: `Hindi Voice: ${voice}`,
     });
   };
 
@@ -173,48 +198,54 @@ export default function Settings() {
               <Volume2 className="h-5 w-5" />
               {t('settings.voice')}
             </CardTitle>
-            <CardDescription>{t('settings.selectVoice')}</CardDescription>
+            <CardDescription>आवाज और बोलने की गति चुनें (Choose voice and speech rate)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-sm font-medium text-primary">🆓 Browser Voice (बिल्कुल मुफ्त - No API needed)</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                आपके ब्राउज़र की built-in Hindi voice का उपयोग करता है
+              </p>
+            </div>
+
+            <Separator />
+
             <div className="space-y-2">
-              <Label htmlFor="tts-provider">TTS Provider</Label>
-              <Select value={ttsProvider} onValueChange={handleTtsProviderChange}>
-                <SelectTrigger id="tts-provider">
+              <Label htmlFor="hindi-voice">हिंदी आवाज़ (Hindi Voice)</Label>
+              <Select value={hindiVoice} onValueChange={handleHindiVoiceChange}>
+                <SelectTrigger id="hindi-voice">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="google">🇮🇳 Google AI Studio (Hindi Voice)</SelectItem>
-                  <SelectItem value="elevenlabs">🎙️ ElevenLabs (Multiple Voices)</SelectItem>
+                  <SelectItem value="hi-IN">🇮🇳 Hindi (India) - Standard</SelectItem>
+                  <SelectItem value="en-IN">🇮🇳 English (India)</SelectItem>
+                  <SelectItem value="hi">हिंदी - Basic</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
-            {ttsProvider === 'elevenlabs' && (
-              <div className="space-y-2">
-                <Label htmlFor="voice-model">{t('settings.voiceModel')}</Label>
-                <Select value={selectedVoice} onValueChange={handleVoiceChange}>
-                  <SelectTrigger id="voice-model">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Aria">Aria (Female)</SelectItem>
-                    <SelectItem value="Roger">Roger (Male)</SelectItem>
-                    <SelectItem value="Sarah">Sarah (Female)</SelectItem>
-                    <SelectItem value="Laura">Laura (Female)</SelectItem>
-                    <SelectItem value="Charlie">Charlie (Male)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
-            {ttsProvider === 'google' && (
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-2">
-                <p className="text-sm font-medium">Voice: hi-IN-Standard-A</p>
-                <p className="text-xs text-muted-foreground">
-                  Natural sounding Hindi female voice powered by Google AI Studio
-                </p>
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="speech-rate">बोलने की गति (Speech Rate)</Label>
+              <Select value={speechRate.toString()} onValueChange={handleSpeechRateChange}>
+                <SelectTrigger id="speech-rate">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0.5">🐢 बहुत धीमी (0.5x - Very Slow)</SelectItem>
+                  <SelectItem value="0.75">🐌 धीमी (0.75x - Slow)</SelectItem>
+                  <SelectItem value="0.9">⚡ सामान्य (0.9x - Normal)</SelectItem>
+                  <SelectItem value="1.0">🎯 मानक (1.0x - Standard)</SelectItem>
+                  <SelectItem value="1.2">⚡ तेज़ (1.2x - Fast)</SelectItem>
+                  <SelectItem value="1.5">🚀 बहुत तेज़ (1.5x - Very Fast)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                💡 टिप: धीमी गति से शुरू करें और अपनी पसंद के अनुसार बढ़ाएं
+              </p>
+            </div>
           </CardContent>
         </Card>
 
