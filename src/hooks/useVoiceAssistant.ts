@@ -336,81 +336,25 @@ export const useVoiceAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
 
-      // Convert text to speech
+      // Convert text to speech using browser's built-in API (no external API needed)
       console.log('Converting text to speech...');
       
-      try {
-        const selectedProvider = localStorage.getItem('ttsProvider') || 'google';
-        const selectedVoice = localStorage.getItem('selectedVoice') || 'Aria';
-
-        let ttsData;
-        let ttsError;
-
-        if (selectedProvider === 'google') {
-          const response = await supabase.functions.invoke('google-tts', {
-            body: { 
-              text: assistantMessage,
-              languageCode: 'hi-IN',
-              voiceName: 'hi-IN-Standard-A'
-            }
-          });
-          ttsData = response.data;
-          ttsError = response.error;
-        } else {
-          const response = await supabase.functions.invoke('text-to-speech', {
-            body: { text: assistantMessage, voice: selectedVoice }
-          });
-          ttsData = response.data;
-          ttsError = response.error;
-        }
-
-        if (ttsError) {
-          console.error('TTS error:', ttsError);
-          throw ttsError;
-        }
-
-        if (ttsData?.audioContent) {
-          // Decode base64 audio and play
-          const audioData = atob(ttsData.audioContent);
-          const audioArray = new Uint8Array(audioData.length);
-          for (let i = 0; i < audioData.length; i++) {
-            audioArray[i] = audioData.charCodeAt(i);
-          }
-          
-          const audioBlob = new Blob([audioArray], { type: 'audio/mpeg' });
-          const audioUrl = URL.createObjectURL(audioBlob);
-          const audio = new Audio(audioUrl);
-          
-          audio.onended = () => {
-            setIsListening(false);
-            URL.revokeObjectURL(audioUrl);
-          };
-          
-          audio.onerror = (error) => {
-            console.error('Audio playback error:', error);
-            setIsListening(false);
-          };
-          
-          await audio.play();
-          console.log('Playing TTS audio...');
-        } else {
-          setIsListening(false);
-        }
-      } catch (ttsError) {
-        console.error('TTS error:', ttsError);
-        setIsListening(false);
-        // Fallback to browser speech synthesis if ElevenLabs fails
-        if ('speechSynthesis' in window) {
+      if ('speechSynthesis' in window) {
+        try {
           const utterance = new SpeechSynthesisUtterance(assistantMessage);
-          utterance.lang = 'en-IN';
+          utterance.lang = 'hi-IN'; // Hindi voice
           utterance.rate = 0.9;
           utterance.pitch = 1.0;
           utterance.onend = () => setIsListening(false);
           utterance.onerror = () => setIsListening(false);
           window.speechSynthesis.speak(utterance);
-        } else {
+        } catch (error) {
+          console.error('Speech synthesis error:', error);
           setIsListening(false);
         }
+      } else {
+        console.log('Speech synthesis not supported');
+        setIsListening(false);
       }
 
     } catch (error: any) {
