@@ -341,12 +341,19 @@ export const useVoiceAssistant = () => {
       
       if ('speechSynthesis' in window) {
         try {
+          // Get user preferences from localStorage
+          const selectedVoiceLang = localStorage.getItem('hindiVoice') || 'hi-IN';
+          const speechRate = parseFloat(localStorage.getItem('speechRate') || '0.9');
+          
           const utterance = new SpeechSynthesisUtterance(assistantMessage);
-          utterance.lang = 'hi-IN'; // Hindi voice
-          utterance.rate = 0.9;
+          utterance.lang = selectedVoiceLang;
+          utterance.rate = speechRate;
           utterance.pitch = 1.0;
+          utterance.volume = 1.0;
+          
           utterance.onend = () => setIsListening(false);
           utterance.onerror = () => setIsListening(false);
+          
           window.speechSynthesis.speak(utterance);
         } catch (error) {
           console.error('Speech synthesis error:', error);
