@@ -321,20 +321,81 @@ export const useVoiceAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
-      // Get AI response
+      // Get AI response with streaming
       setIsListening(true);
       console.log('Getting AI response...');
       
-      const { data: chatData, error: chatError } = await supabase.functions.invoke('chat', {
-        body: { message: userMessage }
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ 
+          message: userMessage,
+          conversationHistory: messages
+        })
       });
 
-      if (chatError) throw chatError;
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI');
+      }
 
-      const assistantMessage = chatData.reply;
-      console.log('AI response:', assistantMessage);
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = '';
+      
+      // Add empty assistant message that we'll update as we stream
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+      if (reader) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                
+                if (data === '[DONE]') {
+                  console.log('Streaming complete');
+                  break;
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    assistantMessage += parsed.text;
+                    // Update the last message (assistant's message) with new content
+                    setMessages(prev => {
+                      const newMessages = [...prev];
+                      newMessages[newMessages.length - 1] = {
+                        role: 'assistant',
+                        content: assistantMessage
+                      };
+                      return newMessages;
+                    });
+                  }
+                } catch (e) {
+                  console.error('Error parsing JSON:', e);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Streaming error:', error);
+        }
+      }
+
+      console.log('Final AI response:', assistantMessage);
 
       // Convert text to speech using browser's built-in API (no external API needed)
       console.log('Converting text to speech...');
