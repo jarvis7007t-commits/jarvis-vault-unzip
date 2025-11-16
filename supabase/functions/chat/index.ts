@@ -12,63 +12,60 @@ serve(async (req) => {
     const { message, conversationHistory = [] } = await req.json();
     console.log('Chat request received:', message);
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Build contents array for Gemini API
-    const contents = [];
+    // Build messages array for Lovable AI
+    const messages = [
+      {
+        role: "system",
+        content: "You are Jarvis, a helpful AI assistant with access to 2025 data. Always provide current, accurate information from 2025. When asked about dates, events, or data, always reference 2025 as the current year. Respond in a mix of Hindi and English as appropriate. Keep responses concise and helpful for voice output."
+      }
+    ];
     
     // Add conversation history
     for (const msg of conversationHistory) {
-      contents.push({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
+      messages.push({
+        role: msg.role,
+        content: msg.content
       });
     }
     
     // Add current message
-    contents.push({
-      role: 'user',
-      parts: [{ text: message }]
-    });
+    if (message) {
+      messages.push({
+        role: 'user',
+        content: message
+      });
+    }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${GEMINI_API_KEY}`,
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
         method: "POST",
         headers: {
+          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents,
-          systemInstruction: {
-            parts: [{
-              text: "You are Jarvis, a helpful AI assistant with access to 2025 data. Always provide current, accurate information from 2025. When asked about dates, events, or data, always reference 2025 as the current year. Respond in a mix of Hindi and English as appropriate. Keep responses concise and helpful for voice output."
-            }]
-          },
-          generationConfig: {
-            temperature: 0.9,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          }
+          model: "google/gemini-2.5-flash",
+          messages,
+          stream: true,
+          temperature: 0.9,
+          max_tokens: 2048,
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
+      console.error("Lovable AI error:", response.status, errorText);
       
-      // Parse error details for better user feedback
-      let errorMessage = "Failed to get response from Gemini";
-      try {
-        const errorData = JSON.parse(errorText);
-        if (errorData[0]?.error?.message) {
-          errorMessage = errorData[0].error.message;
-        }
-      } catch (e) {
-        // Keep default message if parsing fails
+      let errorMessage = "Failed to get response from AI";
+      if (response.status === 429) {
+        errorMessage = "Rate limit exceeded. Please try again later.";
+      } else if (response.status === 402) {
+        errorMessage = "Payment required. Please add credits to your workspace.";
       }
       
       return new Response(JSON.stringify({ 
@@ -80,7 +77,7 @@ serve(async (req) => {
       });
     }
 
-    // Stream the response
+    // Stream the response - Lovable AI uses SSE format
     const stream = new ReadableStream({
       async start(controller) {
         const reader = response.body?.getReader();
@@ -100,42 +97,35 @@ serve(async (req) => {
             if (done) break;
             
             buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
+            let newlineIndex: number;
             
-            // Keep the last incomplete line in buffer
-            buffer = lines.pop() || '';
-            
-            for (const line of lines) {
-              if (line.trim() === '') continue;
+            while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+              let line = buffer.slice(0, newlineIndex);
+              buffer = buffer.slice(newlineIndex + 1);
+              
+              if (line.endsWith('\r')) line = line.slice(0, -1);
+              if (line.startsWith(':') || line.trim() === '') continue;
+              if (!line.startsWith('data: ')) continue;
+              
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === '[DONE]') {
+                controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+                break;
+              }
               
               try {
-                const data = JSON.parse(line);
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content;
                 
-                if (text) {
-                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`));
+                if (content) {
+                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text: content })}\n\n`));
                 }
               } catch (e) {
-                console.error('Error parsing line:', e);
+                console.error('Error parsing SSE line:', e);
               }
             }
           }
           
-          // Process remaining buffer
-          if (buffer.trim()) {
-            try {
-              const data = JSON.parse(buffer);
-              const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              
-              if (text) {
-                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`));
-              }
-            } catch (e) {
-              console.error('Error parsing final buffer:', e);
-            }
-          }
-          
-          controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
           controller.close();
         } catch (error) {
           console.error('Streaming error:', error);
