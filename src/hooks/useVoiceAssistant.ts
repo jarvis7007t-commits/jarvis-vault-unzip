@@ -341,7 +341,14 @@ export const useVoiceAssistant = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        const errorData = await response.json();
+        const errorMsg = errorData.error || 'Failed to get response from AI';
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: errorMsg,
+        });
+        throw new Error(errorMsg);
       }
 
       // Handle streaming response
