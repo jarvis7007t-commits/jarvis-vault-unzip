@@ -59,8 +59,23 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Gemini API error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "Failed to get response from Gemini" }), {
-        status: 500,
+      
+      // Parse error details for better user feedback
+      let errorMessage = "Failed to get response from Gemini";
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData[0]?.error?.message) {
+          errorMessage = errorData[0].error.message;
+        }
+      } catch (e) {
+        // Keep default message if parsing fails
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: errorMessage,
+        status: response.status 
+      }), {
+        status: response.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
