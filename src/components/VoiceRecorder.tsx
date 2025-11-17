@@ -32,10 +32,14 @@ const VoiceRecorder = ({ onTranscript, isProcessing }: VoiceRecorderProps) => {
     recognition.maxAlternatives = 3;
     
     recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      console.log('Transcript:', transcript);
-      onTranscript(transcript);
-      setIsRecording(false);
+      // Only process final results to avoid duplicate messages
+      const result = event.results[event.results.length - 1];
+      if (result.isFinal) {
+        const transcript = result[0].transcript;
+        console.log('Final Transcript:', transcript);
+        onTranscript(transcript);
+        setIsRecording(false);
+      }
     };
 
     recognition.onerror = (event: any) => {
